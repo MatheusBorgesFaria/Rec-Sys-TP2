@@ -1,0 +1,8 @@
+1- testar o algoritmo do chatgpt
+2- Rodar um fatorização de matrix
+3- Rodar um SVD
+4- Rodar o algoritnmo que ganhou no TP 1
+5- Testar um algoritmo de Factorization Machines
+
+
+https://surpriselib.com/

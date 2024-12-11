@@ -1,0 +1,16 @@
+Tarefas LUCAS ----------------------------------
+1- Estruturar todos os dados
+2- Definir para a dupla um único conjunto de treinamento, validação
+6- Criar um notebook de fatorização de matriz por SVD
+
+Tarefas MATHEUS ----------------------------------
+4- Criar um env conda para mim e o Lucas a fim de garantir que conseguiremos
+5- Criar uma função que cria o arquivo csv que kaggle necessita
+7- Criar um notebook para Factorization Machines
+--------------------------------------------------
+
+
+3- Criar ou usar o ferramental de avaliação de modelo
+4- entender a métrica do desafio https://en.wikipedia.org/wiki/Discounted_cumulative_gain#Normalized_DCG
+6- Criar um requirements
+20- É preciso criar um arquivo main.py que roda o treinamento e a predição (python3 main.py ratings.jsonl content.jsonl targets.csv) 
