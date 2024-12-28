@@ -1,0 +1,3 @@
+cornac:
+    https://cornac.readthedocs.io/en/v2.3.0-rerelease5/models/index.html
+    
