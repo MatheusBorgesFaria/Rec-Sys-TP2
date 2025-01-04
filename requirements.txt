@@ -3,3 +3,4 @@ pandas==1.5.3
 numpy==1.23.5
 torch==2.5.1
 torchvision==0.20.1
+sentence-transformers==3.3.1
