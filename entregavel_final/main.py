@@ -1,3 +1,13 @@
+"""Recommendation system - assessment activity 2
+Registration: 2024661577, 2021037929
+Name: Matheus Borges Faria, Lucas de Oliveira Ferreira
+
+To run the code, use the following python version:
+conda create --name tp2 python=3.9.18
+pip3 install -r requirements.txt
+python3 main.py ../data/ratings.jsonl ../data/content.jsonl ../data/targets.csv
+"""
+
 import sys
 import pandas as pd
 import numpy as np
@@ -148,21 +158,60 @@ class LightfmPipeline:
         # Train LightFM model
         self.model = LightFM(loss='warp')
         self.model.fit(self.items_interactions, item_features=self.item_features_matrix,
-                epochs=100, num_threads=cpu_count(), verbose=True)  # TODO: set verbose to False
+                epochs=100, num_threads=cpu_count(), verbose=False)  # TODO: voltasr 'epochs' para 100
     
     def predict_pipeline(self, targets):
         """LightFM prediction pipeline."""
         user_id_map, user_feature_map, item_id_map, item_feature_map = self.dataset.mapping()
         target_prediction = targets.copy()
-        target_prediction["Rating"] = self.model.predict(
+        target_prediction["RatingLightFM"] = self.model.predict(
             targets.UserId.map(user_id_map.get).values,
             targets.ItemId.map(item_id_map.get).values,
             item_features=self.item_features_matrix,
             num_threads=cpu_count()
         )
-        target_prediction = target_prediction.sort_values(["UserId", "Rating"], ascending=[True, False])
+        target_prediction = target_prediction.sort_values(["UserId", "RatingLightFM"], ascending=[True, False])
         return target_prediction
+
+def ensemble_rating(target_prediction, content):
+    """Ensample pipeline."""
+    new_target_prediction = target_prediction.merge(content, on="ItemId")
     
+    new_target_prediction['Score'] = (
+        0.501 * new_target_prediction["imdbRating"]
+        + 2.2 * new_target_prediction["BoxOffice"]
+        + 0.2 * new_target_prediction["Metascore"]
+        + 0.2 * new_target_prediction["RatingLightFM"]
+        + 0.1 * new_target_prediction["imdbVotes"]
+    )
+    new_target_prediction['Score'] = new_target_prediction['Score'].fillna(
+        0.501 * new_target_prediction["imdbRating"]
+        + 2.2 * new_target_prediction["BoxOffice"]
+        + 0.25 * new_target_prediction["Metascore"]
+        + 0.25 * new_target_prediction["RatingLightFM"]
+    )
+    new_target_prediction = new_target_prediction[['UserId', 'ItemId', 'Score']]
+    new_target_prediction = new_target_prediction.sort_values(
+        ["UserId", "Score"],ascending=[True, False], ignore_index=True
+    )
+    return new_target_prediction
+
+
+def final_prediction_output(prediction_dataframe):
+    """
+    Print predictions for user-item pairs as csv format.
+
+    Parameters
+    ----------
+    prediction_dataframe : pandas.DataFrame
+        The dataframe containing the predictions for user-item pairs.
+        Must have columns UserId, ItemId and Rating.
+    """
+    print("UserId,ItemId")
+    for index, row in prediction_dataframe.iterrows():
+        print(f"{row['UserId']},{row['ItemId']}")
+    return
+
     
 def main():
     """Main function."""
@@ -177,13 +226,15 @@ def main():
     ratings, content, targets = load_data(ratings_path, content_path, targets_path)
     content = clean_content_data(content)
     content = content_fill_na(content)
-    print(content.head())
 
     lightfm_pipeline = LightfmPipeline()
     lightfm_pipeline.training_pipeline(ratings, content, targets)
+    
     target_prediction = lightfm_pipeline.predict_pipeline(targets)
-    print(target_prediction.head())
-    from pdb import set_trace; set_trace()
+    
+    target_prediction = ensemble_rating(target_prediction, content)
+    
+    final_prediction_output(target_prediction)
     
 if __name__ == "__main__":
     main()
