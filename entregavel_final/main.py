@@ -14,7 +14,7 @@ import numpy as np
 from os import cpu_count
 from lightfm.data import Dataset
 from lightfm import LightFM
-
+from sklearn.preprocessing import MinMaxScaler
 
 def load_data(ratings_path, content_path, targets_path):
     """Load data from files."""
@@ -156,9 +156,9 @@ class LightfmPipeline:
         self.items_interactions = items_interactions
 
         # Train LightFM model
-        self.model = LightFM(loss='warp')
+        self.model = LightFM(loss='warp', random_state=12012001)
         self.model.fit(self.items_interactions, item_features=self.item_features_matrix,
-                epochs=100, num_threads=cpu_count(), verbose=False)  # TODO: voltasr 'epochs' para 100
+                epochs=100, num_threads=cpu_count(), verbose=False)
     
     def predict_pipeline(self, targets):
         """LightFM prediction pipeline."""
@@ -176,6 +176,8 @@ class LightfmPipeline:
 def ensemble_rating(target_prediction, content):
     """Ensample pipeline."""
     new_target_prediction = target_prediction.merge(content, on="ItemId")
+    columns = ["imdbRating", "BoxOffice", "Metascore", "RatingLightFM", "imdbVotes"]
+    new_target_prediction[columns] = MinMaxScaler().fit_transform(new_target_prediction[columns])
     
     new_target_prediction['Score'] = (
         0.501 * new_target_prediction["imdbRating"]
