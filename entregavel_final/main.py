@@ -180,18 +180,19 @@ def ensemble_rating(target_prediction, content):
     new_target_prediction[columns] = MinMaxScaler().fit_transform(new_target_prediction[columns])
     
     new_target_prediction['Score'] = (
-        0.501 * new_target_prediction["imdbRating"]
+        2.5 * new_target_prediction["imdbRating"]
         + 2.2 * new_target_prediction["BoxOffice"]
         + 0.2 * new_target_prediction["Metascore"]
         + 0.2 * new_target_prediction["RatingLightFM"]
-        + 0.1 * new_target_prediction["imdbVotes"]
+        + 25 * new_target_prediction["imdbVotes"]
     )
     new_target_prediction['Score'] = new_target_prediction['Score'].fillna(
-        0.501 * new_target_prediction["imdbRating"]
+        2.5 * new_target_prediction["imdbRating"]
         + 2.2 * new_target_prediction["BoxOffice"]
         + 0.25 * new_target_prediction["Metascore"]
         + 0.25 * new_target_prediction["RatingLightFM"]
     )
+    
     new_target_prediction = new_target_prediction[['UserId', 'ItemId', 'Score']]
     new_target_prediction = new_target_prediction.sort_values(
         ["UserId", "Score"],ascending=[True, False], ignore_index=True
